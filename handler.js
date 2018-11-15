@@ -60,40 +60,28 @@ module.exports.rek = async () => {
     lastId.Item.data = '1'
   }
   const mentions = await tw.get('statuses/mentions_timeline', {since_id: lastId.Item.data}).then(tweets => tweets.filter(item => item.text.indexOf('image?') > -1));
-  await mentions.forEach(async (tweet) => { 
-    if (tweet.entities.media.length > 0) {
-      await tweet.entities.media.forEach(async (url) => { 
-        let responseTweetText = "I can see: ";
-        console.log(url.media_url);       
-        const imgBytes = await getImageData(url.media_url)
-         //await call REK
-        const params = {
-          Image: {            
-              Bytes: imgBytes
-          },
-          MaxLabels: 5,
-          MinConfidence: 75,
-        };
-       const rekResult = await rekognition.detectLabels(params).promise()
-                              .then (data => data)
-                              .catch (err => console.log(err)); 
-       responseTweetText += rekResult.Labels.map (label => label.Name).join(', '); 
-      })
-    } else {
-      console.log("No image!");
-      responseTweetText = "Where is the image?"
-    }
-    // RESPOnsE TWEET 
-    tw.post('statuses/update', {
-      status: '@' + tweet.user.screen_name + " " + responseTweetText,
-      in_reply_to_status_id: tweet.id_str
-    }, (err, data, response) => {
-      if (err) {
-        console.log(err)
-      } else {
-        console.log(data.text + ' tweeted!')
+  if (mentions && mentions.length > 0) {
+    const tweet = mentions[0]; 
+    if (tweet.entities.media.length > 0) {    
+      const imgBytes = await getImageData(tweet.entities.media[0].media_url)
+       //await call REK
+       const params = {
+        Image: {            
+            Bytes: imgBytes
+        },
+        MaxLabels: 5,
+        MinConfidence: 75,
+      };
+      console.log ("detectLabels");
+      const data = await rekognition.detectLabels(params).promise().catch(err => console.log(err));
+      
+      if (data.Labels && data.Labels.length > 0) {
+        console.log ("RESPOnsE TWEET");
+        const tweeted = await tw.post('statuses/update', {
+           status: '@' + tweet.user.screen_name + " " +  "I can see: " + data.Labels.map (label => label.Name).join(', '),
+           in_reply_to_status_id: tweet.id_str}) 
         save(tweet.id_str);
-      }
-    })  
-  });  
+      } 
+    }
+  } 
 }
