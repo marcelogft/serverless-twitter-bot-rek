@@ -1,0 +1,22 @@
+{
+  "name": "serverless-bot-rek",
+  "version": "1.0.0",
+  "description": "",
+  "main": "handler.js",
+  "dependencies": { 
+    "aws-sdk": "^2.355.0",
+    "node-fetch": "^2.3.0",
+    "twitter": "^1.7.1"
+  },
+  "devDependencies": {
+    "serverless-dynamodb-local": "^0.2.35",
+    "serverless-offline": "^3.31.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "offline": "serverless offline start",
+    "db": "serverless dynamodb migrate"
+  },
+  "author": "MOCR",
+  "license": "ISC"
+}
